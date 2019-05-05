@@ -1019,6 +1019,7 @@ static GF_Err mpdin_dash_can_reverse_playback(GF_MPD_In *mpdin)
 
 GF_Err MPD_ConnectService(GF_InputService *plug, GF_ClientService *serv, const char *url)
 {
+	fprintf(stderr, "debug in mpd_in.c 1022\n");
 	GF_MPD_In *mpdin = (GF_MPD_In*) plug->priv;
 	const char *opt;
 	GF_Err e;
@@ -1205,6 +1206,7 @@ GF_Err MPD_ConnectService(GF_InputService *plug, GF_ClientService *serv, const c
 	mpdin->fn_data_packet = serv->fn_data_packet;
 	serv->fn_data_packet = mpdin_data_packet;
 
+	fprintf(stderr, "debug in mpd_in.c ###MPD_ConnectService### ###Calling gf_dash_new()###\n");
 	mpdin->dash = gf_dash_new(&mpdin->dash_io, max_cache_duration, auto_switch_count, keep_files, disable_switching, first_select_mode, (mpdin->buffer_mode == MPDIN_BUFFER_SEGMENTS) ? 1 : 0, init_timeshift);
 	gf_dash_set_algo(mpdin->dash, mpdin->adaptation_algorithm);
 
@@ -1280,7 +1282,10 @@ GF_Err MPD_ConnectService(GF_InputService *plug, GF_ClientService *serv, const c
 	gf_dash_set_period_xlink_query_string(mpdin->dash, gf_modules_get_option((GF_BaseInterface *)plug, "DASH", "XLinkQuery") );
 
 	/*dash thread starts at the end of gf_dash_open */
+	fprintf(stderr, "debug in mpd_in.c ###MPD_ConnectService### ###Calling gf_dash_open()###\n");
 	e = gf_dash_open(mpdin->dash, url);
+	fprintf(stderr, "debug in mpd_in.c 1285\n");
+	fprintf(stderr, "debug in mpd_in.c... url is %s\n", url);
 	if (e) {
 		GF_LOG(GF_LOG_ERROR, GF_LOG_DASH, ("[MPD_IN] Error - cannot initialize DASH Client for %s: %s\n", url, gf_error_to_string(e)));
 		mpdin->fn_connect_ack(mpdin->service, NULL, e);

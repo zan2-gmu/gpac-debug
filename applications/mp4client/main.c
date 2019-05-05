@@ -1556,6 +1556,7 @@ int mp4client_main(int argc, char **argv)
 
 	{
 		GF_SystemRTInfo rti;
+		fprintf(stderr, "debug main.c 1559\n\n");
 		if (gf_sys_get_rti(0, &rti, 0))
 			fprintf(stderr, "System info: %d MB RAM - %d cores\n", (u32) (rti.physical_memory/1024/1024), rti.nb_cores);
 	}
@@ -1712,6 +1713,7 @@ int mp4client_main(int argc, char **argv)
 			if (!strncmp("http:", the_url, 5)) {
 				GF_DownloadSession *sess = gf_dm_sess_new(term->downloader, the_url, GF_NETIO_SESSION_NOT_THREADED, NULL, NULL, &e);
 				if (sess) {
+					printf("Main.c 1715 running!");
 					e = gf_dm_sess_process(sess);
 					if (!e) {
 						strncpy(the_url, gf_dm_sess_get_cache_name(sess), sizeof(the_url) - 1);
@@ -1729,19 +1731,26 @@ int mp4client_main(int argc, char **argv)
 				if (e)
 					fprintf(stderr, "Failed to open playlist %s: %s\n", the_url, gf_error_to_string(e) );
 				fprintf(stderr, "Hit 'h' for help\n\n");
+				fprintf(stderr, "debug main.c 1733");
 			}
 		} else {
 			fprintf(stderr, "Opening URL %s\n", the_url);
+			fprintf(stderr, "debug main.c 1738\n");
 			if (pause_at_first) fprintf(stderr, "[Status: Paused]\n");
 			gf_term_connect_from_time(term, the_url, (u64) (play_from*1000), pause_at_first);
+			fprintf(stderr, "debug main.c 1741\n");
 		}
 	} else {
 		fprintf(stderr, "Hit 'h' for help\n\n");
+		fprintf(stderr, "debug main.c 1745\n\n");
 		str = gf_cfg_get_key(cfg_file, "General", "StartupFile");
 		if (str) {
 			strncpy(the_url, "MP4Client "GPAC_FULL_VERSION , sizeof(the_url)-1);
 			the_url[sizeof(the_url) - 1] = 0;
+			fprintf(stderr, "debug main.c 1747\n\n");
 			gf_term_connect(term, str);
+			fprintf(stderr, "Trying to connect to str %s\n", str);
+			fprintf(stderr, "Trying to connect to URL %s\n", the_url);
 			startup_file = 1;
 			is_connected = 1;
 		}
@@ -1768,8 +1777,10 @@ int mp4client_main(int argc, char **argv)
 
 	while (Run) {
 
+//		fprintf(stderr, "debug main.c 1777\n\n");
 		/*we don't want getchar to block*/
 		if ((gui_mode==1) || !gf_prompt_has_input()) {
+//			fprintf(stderr, "debug main.c 1780\n\n");
 			if (reload) {
 				reload = 0;
 				gf_term_disconnect(term);
@@ -1780,6 +1791,7 @@ int mp4client_main(int argc, char **argv)
 				gf_term_play_from_time(term, 0, 0);
 			}
 			if (request_next_playlist_item) {
+				fprintf(stderr, "debug main.c 1791\n\n");
 				c = '\n';
 				request_next_playlist_item = 0;
 				goto force_input;
@@ -1787,6 +1799,7 @@ int mp4client_main(int argc, char **argv)
 
 			if (has_command && is_connected) {
 				has_command = GF_FALSE;
+				fprintf(stderr, "debug main.c 1797\n\n");
 				for (i=0; i<(u32)argc; i++) {
 					if (!strcmp(argv[i], "-com")) {
 						gf_term_scene_update(term, NULL, argv[i+1]);
@@ -1796,6 +1809,7 @@ int mp4client_main(int argc, char **argv)
 			}
 			if (initial_service_id && is_connected) {
 				GF_ObjectManager *root_od = gf_term_get_root_object(term);
+				fprintf(stderr, "debug main.c 1807\n\n");
 				if (root_od) {
 					gf_term_select_service(term, root_od, initial_service_id);
 					initial_service_id = 0;
@@ -1821,6 +1835,7 @@ int mp4client_main(int argc, char **argv)
 			continue;
 		}
 		c = gf_prompt_get_char();
+		fprintf(stderr, "debug main.c 1835\n\n");
 
 force_input:
 		switch (c) {
@@ -1864,6 +1879,7 @@ force_input:
 					break;
 				}
 				fprintf(stderr, "Opening URL %s\n", the_url);
+				fprintf(stderr, "debug main.c 1881\n");
 				gf_term_connect(term, the_url);
 			}
 			break;
@@ -1885,6 +1901,7 @@ force_input:
 					request_next_playlist_item = GF_TRUE;
 				} else {
 					fprintf(stderr, "Opening URL %s\n", the_url);
+					fprintf(stderr, "debug main.c 1903\n");
 					gf_term_connect_with_path(term, the_url, pl_path);
 				}
 			}
@@ -1905,6 +1922,7 @@ force_input:
 					count--;
 				}
 				fprintf(stderr, "Opening URL %s\n", the_url);
+				fprintf(stderr, "debug main.c 1924\n");
 				gf_term_connect(term, the_url);
 			}
 			break;
@@ -2356,6 +2374,7 @@ force_input:
 
 	if (bench_mode) {
 		PrintAVInfo(GF_TRUE);
+		fprintf(stderr, "debug main.c 2371\n\n");
 	}
 
 	/*FIXME: we have an issue in cleaning up after playing in bench mode and run-for 0 (buildbot tests). We for now disable error checks after run-for is done*/

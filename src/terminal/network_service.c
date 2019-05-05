@@ -913,6 +913,7 @@ static GF_InputService *gf_term_can_handle_service(GF_Terminal *term, const char
 	} else {
 		/*fetch a mime type if any. If error don't even attempt to open the service	*/
 		mime_type = get_mime_type(term, sURL, &e, the_session);
+		fprintf(stderr, "debug in network_service.c 916\n");
 		if (e) {
 			(*ret_code) = e;
 			goto exit;
@@ -935,6 +936,7 @@ static GF_InputService *gf_term_can_handle_service(GF_Terminal *term, const char
 	if (mime_type && !skip_mime) {
 		const char *sPlug = gf_cfg_get_key(term->user->config, "MimeTypes", mime_type);
 		GF_LOG(GF_LOG_DEBUG, GF_LOG_MEDIA, ("[Terminal] Mime type found: %s\n", mime_type));
+		fprintf(stderr, "debug in network_service.c... mime_type is %s\n", mime_type);
 		if (!sPlug) {
 			*out_mime_type = mime_type;
 			mime_type=NULL;
@@ -1064,11 +1066,14 @@ exit:
 		if (*out_mime_type) gf_free(*out_mime_type);
 		*out_mime_type = NULL;
 	} else {
+		fprintf(stderr, "debug in network_service.c 1069\n");
 		*out_url = sURL;
 		GF_LOG(GF_LOG_INFO, GF_LOG_MEDIA, ("[Terminal] Found input plugin %s for URL %s (%s)\n", ifce->module_name, sURL, mime_type ? mime_type : "no mime type"));
+		fprintf(stderr, "Found input plugin %s for URL %s (%s)\n", ifce->module_name, sURL, mime_type ? mime_type : "no mime type");
 	}
 	if (mime_type)
 		*out_mime_type = mime_type;
+	fprintf(stderr, "debug in network_service.c 1075\n");
 	return ifce;
 }
 
@@ -1079,6 +1084,7 @@ GF_ClientService *gf_term_service_new(GF_Terminal *term, struct _od_manager *own
 	char *mime;
 	GF_ClientService *serv;
 	GF_InputService *ifce = gf_term_can_handle_service(term, url, parent_url, 0, &sURL, ret_code, &download_session, &mime);
+	fprintf(stderr, "debug in network_service.c 1086\n");
 	if (!ifce) {
 		if (owner->subscene) gf_scene_notify_event(owner->subscene, GF_EVENT_SCENE_ATTACHED, NULL, NULL, *ret_code, GF_FALSE);
 		return NULL;
@@ -1109,6 +1115,7 @@ GF_ClientService *gf_term_service_new(GF_Terminal *term, struct _od_manager *own
 	serv->fn_add_media = term_on_media_add;
 
 	if (owner && owner->OD && owner->OD->RedirectOnly) serv->serviceID = owner->OD->ServiceID;
+	fprintf(stderr, "debug in network_service.c 1118\n");
 	return serv;
 }
 

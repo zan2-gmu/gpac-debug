@@ -535,12 +535,14 @@ static void gf_term_set_play_state(GF_Terminal *term, u32 PlayState, Bool reset_
 
 static void gf_term_connect_from_time_ex(GF_Terminal * term, const char *URL, u64 startTime, u32 pause_at_first_frame, Bool secondary_scene, const char *parent_path)
 {
+	fprintf(stderr, "debug terminal.c 538\n");
 	GF_Scene *scene;
 	GF_ObjectManager *odm;
 	const char *main_url;
 	if (!URL || !strlen(URL)) return;
 
 	if (term->root_scene) {
+		fprintf(stderr, "debug terminal.c 545\n");
 		if (term->root_scene->root_od && term->root_scene->root_od->net_service) {
 			main_url = term->root_scene->root_od->net_service->url;
 			if (main_url && !strcmp(main_url, URL)) {
@@ -557,6 +559,7 @@ static void gf_term_connect_from_time_ex(GF_Terminal * term, const char *URL, u6
 	GF_LOG(GF_LOG_DEBUG, GF_LOG_MEDIA, ("[Terminal] Creating new root scene\n", URL));
 	/*create a new scene*/
 	scene = gf_scene_new(NULL);
+	fprintf(stderr, "debug terminal.c 562\n");
 	gf_sg_set_script_action(scene->graph, term_script_action, term);
 	odm = gf_odm_new();
 
@@ -588,6 +591,8 @@ static void gf_term_connect_from_time_ex(GF_Terminal * term, const char *URL, u6
 
 	/*connect - we don't have any parentID */
 	gf_term_connect_object(term, odm, (char *) URL, (char*)parent_path);
+	fprintf(stderr, "debug in terminal.c URL is %s, parent_path is %s\n", URL, parent_path);
+	fprintf(stderr, "debug terminal.c 594\n");
 }
 
 void gf_term_refresh_cache(GF_Config *cfg)
@@ -1446,6 +1451,7 @@ void gf_term_service_media_event_with_download(GF_ObjectManager *odm, GF_EventTy
 	if (!odm || !odm->net_service) return;
 	if (odm->mo) {
 		count = gf_mo_event_target_count(odm->mo);
+//		fprintf(stderr, "debug in terminal.c... first count is %d\n", count);
 
 		//for dynamic scenes, check if we have listeners on the root object of the scene containing this media
 		if (odm->parentscene
@@ -1455,6 +1461,7 @@ void gf_term_service_media_event_with_download(GF_ObjectManager *odm, GF_EventTy
 		   ) {
 			odm = odm->parentscene->root_od;
 			count = gf_mo_event_target_count(odm->mo);
+//			fprintf(stderr, "debug in terminal.c... second count is %d\n", count);
 		}
 		if (!count) return;
 
@@ -1462,6 +1469,7 @@ void gf_term_service_media_event_with_download(GF_ObjectManager *odm, GF_EventTy
 			return;
 	} else {
 		count = 0;
+		fprintf(stderr, "debug terminal.c 1472\n");
 	}
 
 
@@ -1564,9 +1572,11 @@ static void gf_term_connect_object(GF_Terminal *term, GF_ObjectManager *odm, cha
 	/*try to relocate the url*/
 	reloc_result = gf_term_relocate_url(term, serviceURL, parent_url, relocated_url, localized_url);
 	if (reloc_result) serviceURL = (char *) relocated_url;
+	fprintf(stderr, "debug in terminal.c... serviceURL is %s\n", serviceURL);
 
 	/*check cache*/
 	if (parent_url) {
+		fprintf(stderr, "debug terminal.c 1576\n");
 		count = gf_cfg_get_section_count(term->user->config);
 		for (i=0; i<count; i++) {
 			u32 exp, sec, frac;
@@ -1602,6 +1612,7 @@ static void gf_term_connect_object(GF_Terminal *term, GF_ObjectManager *odm, cha
 	net_locked = gf_mx_try_lock(term->net_mx);
 	i=0;
 	while ( (ns = (GF_ClientService*)gf_list_enum(term->net_services, &i)) ) {
+		fprintf(stderr, "debug terminal.c 1612\n");
 		/*we shall not have a service scheduled for destruction here*/
 		if (ns->owner && ( (ns->owner->flags & GF_ODM_DESTROYED) || (ns->owner->action_type == GF_ODM_ACTION_DELETE)) )
 			continue;
@@ -1612,6 +1623,7 @@ static void gf_term_connect_object(GF_Terminal *term, GF_ObjectManager *odm, cha
 		}
 
 		if (gf_term_service_can_handle_url(ns, serviceURL)) {
+			fprintf(stderr, "debug terminal.c 1622\n");
 			if (net_locked) {
 				gf_term_lock_net(term, 0);
 			}
@@ -1661,6 +1673,7 @@ static void gf_term_connect_object(GF_Terminal *term, GF_ObjectManager *odm, cha
 		odm->net_service->nb_odm_users--;
 	}
 	odm->net_service = gf_term_service_new(term, odm, serviceURL, (odm->addon || reloc_result) ? NULL : parent_url, &e);
+	fprintf(stderr, "debug terminal.c 1673\n");
 	if (!odm->net_service) {
 		gf_term_message(term, serviceURL, "Cannot open service", e);
 		gf_odm_disconnect(odm, 1);
@@ -1673,6 +1686,7 @@ static void gf_term_connect_object(GF_Terminal *term, GF_ObjectManager *odm, cha
 	/*OK connect*/
 	gf_term_service_media_event(odm, GF_EVENT_MEDIA_SETUP_BEGIN);
 	odm->net_service->ifce->ConnectService(odm->net_service->ifce, odm->net_service, odm->net_service->url);
+	fprintf(stderr, "debug terminal.c 1689\n");
 
 	/*remove pending download session if any*/
 	gf_term_cleanup_pending_session(term, ns);

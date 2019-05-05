@@ -1090,6 +1090,7 @@ GF_Err gf_dash_download_resource(GF_DashClient *dash, GF_DASHFileIOSession *sess
 	GF_DASHFileIO *dash_io = dash->dash_io;
 
 	GF_LOG(GF_LOG_DEBUG, GF_LOG_DASH, ("[DASH] Downloading %s starting at UTC "LLU" ms\n", url, gf_net_get_utc() ));
+	fprintf(stderr, "debug in dash_client.c line 1093 ###gf_dash_download_resource### [DASH] Downloading %s starting at UTC "LLU" ms\n", url, gf_net_get_utc());
 
 	if (group) {
 		group_idx = gf_list_find(group->dash->groups, group);
@@ -1718,6 +1719,8 @@ static GF_Err gf_dash_update_manifest(GF_DashClient *dash)
 	Double timeline_start_time;
 	GF_MPD *new_mpd=NULL;
 	Bool fetch_only = GF_FALSE;
+
+	fprintf(stderr, "in dash_client.c line 1273, gf_dash_update_manifest()... Updating manifest!");
 
 	if (!dash->mpd_dnload) {
 		local_url = purl = NULL;
@@ -2593,6 +2596,7 @@ static GF_Err gf_dash_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_DA
 	GF_MPD_AdaptationSet *set = group->adaptation_set;
 	GF_MPD_Period *period = group->period;
 	u32 timescale;
+	fprintf(stderr, "in dash_client.c line 2599, in gf_dash_resolve_url, the item_index is %d \n\n", item_index);
 
 	if (!group->timeline_setup) {
 		gf_dash_group_timeline_setup(mpd, group, 0);
@@ -2616,6 +2620,7 @@ static GF_Err gf_dash_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_DA
 	if (!*out_url) {
 		return e;
 	}
+	fprintf(stderr, "in dash_client.c line 2623, after gf_mpd_resolve_url, the out_url is %s \n\n", *out_url);
 
 	if (*out_url && data_url_process && !strncmp(*out_url, "data:", 5)) {
 		char *sep;
@@ -3519,6 +3524,7 @@ static GF_Err gf_dash_download_init_segment(GF_DashClient *dash, GF_DASH_Group *
 
 	if (!strstr(base_init_url, "://") || !strnicmp(base_init_url, "file://", 7) || !strnicmp(base_init_url, "gmem://", 7)
 		|| !strnicmp(base_init_url, "views://", 8) || !strnicmp(base_init_url, "mosaic://", 9) || !strnicmp(base_init_url, "isobmff://", 10)) {
+		fprintf(stderr, "in dash_client.c line 3523, gf_dash_download_init_segment()... \n\n");	
 		//if file-based, check if file exists, if not switch base URL
 		if ( strnicmp(base_init_url, "gmem://", 7)) {
 			FILE *ftest = gf_fopen(base_init_url, "rb");
@@ -3574,6 +3580,7 @@ static GF_Err gf_dash_download_init_segment(GF_DashClient *dash, GF_DASH_Group *
 		if (!group->bitstream_switching) {
 			u32 k;
 			for (k=0; k<gf_list_count(group->adaptation_set->representations); k++) {
+				fprintf(stderr, "in dash_client.c line 3578, gf_dash_download_init_segment()... # of representations is %d \n\n", k);
 				char *a_base_init_url = NULL;
 				u64 a_start = 0, a_end = 0, a_dur = 0;
 				GF_MPD_Representation *a_rep = gf_list_get(group->adaptation_set->representations, k);
@@ -3750,6 +3757,7 @@ static GF_Err gf_dash_download_init_segment(GF_DashClient *dash, GF_DASH_Group *
 	if (!group->bitstream_switching) {
 		u32 k;
 		for (k=0; k<gf_list_count(group->adaptation_set->representations); k++) {
+			fprintf(stderr, "in dash_client.c line 3756, gf_dash_download_init_segment()... # of representations is %d \n\n", k);
 			char *a_base_init_url = NULL;
 			u64 a_start, a_end, a_dur;
 			GF_MPD_Representation *a_rep = gf_list_get(group->adaptation_set->representations, k);
@@ -3759,6 +3767,7 @@ static GF_Err gf_dash_download_init_segment(GF_DashClient *dash, GF_DASH_Group *
 			e = gf_dash_resolve_url(dash->mpd, a_rep, group, dash->base_url, GF_MPD_RESOLVE_URL_INIT, 0, &a_base_init_url, &a_start, &a_end, &a_dur, NULL, &a_rep->playback.key_url, &a_rep->playback.key_IV, &a_rep->playback.owned_gmem);
 			if (!e && a_base_init_url) {
 				e = gf_dash_download_resource(dash, &(group->segment_download), a_base_init_url, a_start, a_end, 1, group);
+				fprintf(stderr, "in dash_client.c line 3766, gf_dash_download_init_segment()... a_base_init_url is %s", a_base_init_url);
 
 				if ((e==GF_IP_CONNECTION_CLOSED) && group->download_abort_type) {
 					group->download_abort_type = 0;
@@ -3793,6 +3802,7 @@ static GF_Err gf_dash_download_init_segment(GF_DashClient *dash, GF_DASH_Group *
 	}
 
 	if (dash->atsc_clock_state) {
+		fprintf(stderr, "in dash_client.c line 3800, gf_dash_download_init_segment()...\n\n");
 		u32 i, j;
 		for (i=0; i<gf_list_count(group->adaptation_set->representations); i++) {
 			GF_MPD_Representation *a_rep = gf_list_get(group->adaptation_set->representations, i);
@@ -5504,8 +5514,7 @@ static DownloadGroupStatus dash_download_group_download(GF_DashClient *dash, GF_
 	GF_MPD_Type dyn_type = dash->mpd->type;
 	if (group->period->origin_base_url)
 		dyn_type = group->period->type;
-
-
+	fprintf(stderr, "in dash_client.c line 5515, dash_download_group_download()... \n\n");
 	if (group->done) return GF_DASH_DownloadSuccess;
 
 	if (group->selection != GF_DASH_GROUP_SELECTED) return GF_DASH_DownloadSuccess;
@@ -5656,6 +5665,12 @@ static DownloadGroupStatus dash_download_group_download(GF_DashClient *dash, GF_
 	if (group->period->origin_base_url) base_url = group->period->origin_base_url;
 	/* At this stage, there are some segments left to be downloaded */
 	e = gf_dash_resolve_url(dash->mpd, rep, group, base_url, GF_MPD_RESOLVE_URL_MEDIA, group->download_segment_index, &new_base_seg_url, &start_range, &end_range, &group->current_downloaded_segment_duration, NULL, &key_url, &key_iv, NULL);
+	fprintf(stderr, "in dash_client.c line 5666, after gf_dash_resolve_url, the base_url is %s \n\n", base_url);
+	fprintf(stderr, "in dash_client.c line 5667, after gf_dash_resolve_url, the new_base_seg_url is %s \n\n", new_base_seg_url);
+
+	#if 0
+					new_base_seg_url = ;
+	#endif
 
 	if (e || !new_base_seg_url) {
 		if (e==GF_EOS) {
@@ -5712,6 +5727,8 @@ static DownloadGroupStatus dash_download_group_download(GF_DashClient *dash, GF_
 		if (use_byterange) {
 			e = gf_dash_download_resource(dash, &(base_group->segment_download), new_base_seg_url, start_range, end_range, 1, base_group);
 		} else {
+			fprintf(stderr, "in dash_client.c line 5722, downloading segments... \n\n");
+			fprintf(stderr, "in dash_client.c line 5724, the_base_seg_url is %s \n\n", new_base_seg_url);
 			e = gf_dash_download_resource(dash, &(base_group->segment_download), new_base_seg_url, 0, 0, 1, base_group);
 		}
 
@@ -5855,8 +5872,10 @@ static DownloadGroupStatus dash_download_group_download(GF_DashClient *dash, GF_
 static DownloadGroupStatus dash_download_group(GF_DashClient *dash, GF_DASH_Group *group, GF_DASH_Group *base_group, Bool has_dep_following)
 {
 	DownloadGroupStatus res;
+	fprintf(stderr, "in dash_client.c line 5866, dash_download_group()... \n\n");
 
 	if (!group->current_dep_idx) {
+		fprintf(stderr, "in dash_client.c line 5868, if(!group->current_dep_idx)... \n\n");
 		res = dash_download_group_download(dash, group, base_group, has_dep_following);
 		if (res==GF_DASH_DownloadRestart) return res;
 		if (res==GF_DASH_DownloadCancel) return res;
@@ -5897,6 +5916,8 @@ static void dash_global_rate_adaptation(GF_DashClient *dash, Bool for_postponed_
 	u32 total_rate, bandwidths[20], groups_per_quality[20], max_level;
 	u32 q_idx, nb_qualities = 0;
 	u32 i, count = gf_list_count(dash->groups), local_files = 0;
+
+	fprintf(stderr, "in dash_client.c line 5909, dash_global_rate_adaptation \n\n");
 
 	//initialize min/max bandwidth
 	min_bandwidth = 0;
@@ -6165,6 +6186,7 @@ restart_period:
 
 	/*setup period*/
 	e = gf_dash_setup_period(dash);
+	fprintf(stderr, "in dash_client.c line 6169, period has been setup...\n\n");
 	if (e) {
 		//move to stop state before sending the error event otherwise we might deadlock when disconnecting the dash client
 		dash->dash_state = GF_DASH_STATE_STOPPED;
@@ -6176,6 +6198,7 @@ restart_period:
 
 	e = GF_OK;
 	group_count = gf_list_count(dash->groups);
+	fprintf(stderr, "in dash_client.c line 6181, group_count is %d\n", group_count);
 	for (i=0; i<group_count; i++) {
 		GF_DASH_Group *group = gf_list_get(dash->groups, i);
 		if (group->selection==GF_DASH_GROUP_NOT_SELECTABLE)
@@ -6183,10 +6206,12 @@ restart_period:
 
 		//by default all groups are started (init seg download and buffering). They will be (de)selected by the user
 		if (first_period_in_mpd) {
+			fprintf(stderr, "in dash_client.c line 6188, first_period_in_mpd...\n\n");
 			gf_dash_buffer_on(group);
 		}
 		gf_mx_p(group->cache_mutex);
 		e = gf_dash_download_init_segment(dash, group);
+		fprintf(stderr, "in dash_client.c line 6193, gf_dash_download_init_segment()...\n\n");
 		gf_mx_v(group->cache_mutex);
 		if (e == GF_IP_NETWORK_EMPTY) {
 			gf_dash_buffer_off(group);
@@ -6247,11 +6272,13 @@ restart_period:
 
 		/*wait until next segment is needed*/
 		while (!dash->mpd_stop_request) {
+//		fprintf(stderr, "in dash_client.c line 6264, while(!dash->mpd_stop_request) \n\n");
 			Bool all_groups_done_notified = GF_FALSE;
 			u32 timer = gf_sys_clock() - dash->last_update_time;
 
 			/*refresh MPD*/
 			if (dash->force_mpd_update || (dash->mpd->minimum_update_period && (timer > dash->mpd->minimum_update_period))) {
+				fprintf(stderr, "in dash_client.c line 6270, if(dash->force_mpd_update)... \n\n");
 				u32 diff = gf_sys_clock();
 				if (dash->force_mpd_update || dash->mpd->minimum_update_period) {
 					GF_LOG(GF_LOG_INFO, GF_LOG_DASH, ("[DASH] At %d Time to update the playlist (%u ms elapsed since last refresh and min reload rate is %u)\n", gf_sys_clock() , timer, dash->mpd->minimum_update_period));
@@ -6260,6 +6287,7 @@ restart_period:
 
 				gf_mx_p(dash->dash_mutex);
 				e = gf_dash_update_manifest(dash);
+				fprintf(stderr, "in dash_client.c line 6266, gf_dash_update_manifest()...\n\n");
 				gf_mx_v(dash->dash_mutex);
 
 				group_count = gf_list_count(dash->groups);
@@ -6272,6 +6300,7 @@ restart_period:
 					GF_LOG(GF_LOG_DEBUG, GF_LOG_DASH, ("[DASH] Updated MPD in %d ms\n", diff));
 				}
 			} else {
+//			fprintf(stderr, "in dash_client.c line 6292, else... \n\n");
 				Bool all_groups_done = GF_TRUE;
 				Bool cache_full = GF_TRUE;
 
@@ -6408,12 +6437,14 @@ restart_period:
 
 			if (dash->use_threaded_download) {
 				group->download_th_done = GF_FALSE;
+				fprintf(stderr, "in dash_client.c line 6415, calling gf_th_run()...\n\n");
 				e = gf_th_run(group->download_th, dash_download_threaded, group);
 				if (e!=GF_OK) {
 					GF_LOG(GF_LOG_ERROR, GF_LOG_DASH, ("[DASH] Cannot launch download thread for AdaptationSet #%d - error %s\n", i+1, gf_error_to_string(e)));
 					group->download_th_done = GF_TRUE;
 				}
 			} else {
+				fprintf(stderr, "in dash_client.c line 6436, else... \n\n");
 				DownloadGroupStatus res;
 				group->download_th_done = GF_FALSE;
 				res = dash_download_group(dash, group, group, group->groups_depending_on ? GF_TRUE : GF_FALSE);
@@ -6445,8 +6476,9 @@ restart_period:
 				break;
 			gf_sleep(1);
 		}
-
+		fprintf(stderr, "in dash_client.c line 6464, gf_dash_download_init_segment()... \n\n");
 		dash_global_rate_adaptation(dash, GF_FALSE);
+		fprintf(stderr, "in dash_client.c line 6466, gf_dash_download_init_segment()... \n\n");
 	}
 
 exit:
@@ -6811,6 +6843,7 @@ GF_Err gf_dash_open(GF_DashClient *dash, const char *manifest_url)
 	} else if (strstr(manifest_url, "://")) {
 		const char *reloc_url, *mtype;
 		char mime[128];
+		fprintf(stderr, "debug in dash_client.c ###gf_dash_open()### ###Calling gf_dash_download_resource()###\n");
 		e = gf_dash_download_resource(dash, &(dash->mpd_dnload), manifest_url, 0, 0, 1, NULL);
 		if (e!=GF_OK) {
 			GF_LOG(GF_LOG_ERROR, GF_LOG_DASH, ("[DASH] Error - cannot connect service: MPD downloading problem %s for %s\n", gf_error_to_string(e), manifest_url));
@@ -6973,10 +7006,13 @@ GF_Err gf_dash_open(GF_DashClient *dash, const char *manifest_url)
 	}
 
 	dash->mpd_stop_request = 0;
+	fprintf(stderr, "debug in dash_client.c line 6978 *start the dash thread*\n");
 	e = gf_th_run(dash->dash_thread, dash_main_thread_proc, dash);
+	fprintf(stderr, "debug in dash_client.c line 6980 *the dash thread has been started*\n");
 
 	return e;
 exit:
+	fprintf(stderr, "debug in dash_client.c Successfully from *exit* in ###gf_dash_open()###\n");
 	dash->dash_io->del(dash->dash_io, dash->mpd_dnload);
 	dash->mpd_dnload = NULL;
 
@@ -7070,6 +7106,7 @@ GF_DashClient *gf_dash_new(GF_DASHFileIO *dash_io, u32 max_cache_duration, u32 a
 	dash->tile_rate_decrease = 100;
 	dash->atsc_ast_shift = 1000;
 	GF_LOG(GF_LOG_DEBUG, GF_LOG_DASH, ("[DASH] Client created\n"));
+	fprintf(stderr, "debug in dash_client.c... line 7074---[DASH] Client created\n");
 	return dash;
 }
 

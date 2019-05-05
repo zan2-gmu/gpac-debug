@@ -2538,6 +2538,7 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 	url = gf_mpd_get_base_url(set->base_URLs, url, &base_url_index);
 	url = gf_mpd_get_base_url(rep->base_URLs, url, &base_url_index);
 	assert(url);
+	fprintf(stderr, "in mpd.c line 2541, after gf_mpd_get_base_url, the url is %s \n\n", url);
 
 	/*single URL*/
 	if (!rep->segment_list && !set->segment_list && !period->segment_list && !rep->segment_template && !set->segment_template && !period->segment_template) {
