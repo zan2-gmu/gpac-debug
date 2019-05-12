@@ -5664,9 +5664,11 @@ static DownloadGroupStatus dash_download_group_download(GF_DashClient *dash, GF_
 	base_url = dash->base_url;
 	if (group->period->origin_base_url) base_url = group->period->origin_base_url;
 	/* At this stage, there are some segments left to be downloaded */
+	fprintf(stderr, "in dash_client.c line 5667, before gf_dash_resolve_url, the group->download_segment_index is %d \n\n", group->download_segment_index);
 	e = gf_dash_resolve_url(dash->mpd, rep, group, base_url, GF_MPD_RESOLVE_URL_MEDIA, group->download_segment_index, &new_base_seg_url, &start_range, &end_range, &group->current_downloaded_segment_duration, NULL, &key_url, &key_iv, NULL);
-	fprintf(stderr, "in dash_client.c line 5666, after gf_dash_resolve_url, the base_url is %s \n\n", base_url);
-	fprintf(stderr, "in dash_client.c line 5667, after gf_dash_resolve_url, the new_base_seg_url is %s \n\n", new_base_seg_url);
+	fprintf(stderr, "in dash_client.c line 5669, after gf_dash_resolve_url, the base_url is %s \n\n", base_url);
+	fprintf(stderr, "in dash_client.c line 5670, after gf_dash_resolve_url, the new_base_seg_url is %s \n\n", new_base_seg_url);
+	fprintf(stderr, "in dash_client.c line 5671, after gf_dash_resolve_url, the group->download_segment_index is %d \n\n", group->download_segment_index);
 
 	#if 0
 					new_base_seg_url = ;

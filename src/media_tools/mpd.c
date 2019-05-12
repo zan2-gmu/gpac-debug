@@ -22,7 +22,8 @@
  *  the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
  *
  */
-
+#include <stdio.h>
+#include <stdlib.h>
 #include <gpac/internal/mpd.h>
 #include <gpac/download.h>
 #include <gpac/internal/m3u8.h>
@@ -37,6 +38,9 @@
 #endif
 
 #ifndef GPAC_DISABLE_CORE_TOOLS
+
+// total number of tile
+u32 init_number = 0;
 
 static Bool gf_mpd_parse_bool(const char * const attr)
 {
@@ -2524,6 +2528,7 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 	char *url;
 	char *url_to_solve, *solved_template, *first_sep, *media_url;
 	char *init_template, *index_template;
+	char *temp;
 
 	if (!out_range_start || !out_range_end || !out_url || !mpd_url || !segment_duration_in_ms)
 		return GF_BAD_PARAM;
@@ -2542,6 +2547,8 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 
 	/*single URL*/
 	if (!rep->segment_list && !set->segment_list && !period->segment_list && !rep->segment_template && !set->segment_template && !period->segment_template) {
+		fprintf(stderr, "in mpd.c line 2545, enter in single URL if statement \n\n");
+		
 		GF_MPD_URL *res_url;
 		GF_MPD_SegmentBase *base_seg = NULL;
 		if (item_index > 0)
@@ -2748,14 +2755,50 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 		media_url = base->URL;
 	}
 	url_to_solve = NULL;
+	u32 n;
+	u32 value = 0;
+	char int_to_string[256]="";
+	char dest[256]="";
 	switch (resolve_type) {
 	case GF_MPD_RESOLVE_URL_INIT:
 		url_to_solve = init_template;
+		fprintf(stderr, "in mpd.c line 2756, in gf_mpd_resolve_url(), init_template is %s \n\n", init_template);
+		init_number += 1;
+		fprintf(stderr, "in mpd.c line 2761, in gf_mpd_resolve_url(), init_number is %d \n\n", init_number);
 		break;
 	case GF_MPD_RESOLVE_URL_MEDIA:
 	case GF_MPD_RESOLVE_URL_MEDIA_TEMPLATE:
 	case GF_MPD_RESOLVE_URL_MEDIA_NOSTART:
+		temp = strstr(media_url, "track");
+		temp = temp+5;
+		fprintf(stderr, "in mpd.c line 2771, in gf_mpd_resolve_url(), temp is %s \n\n", temp);
+		for (n=2;n>0;n--){
+			if(*temp >= '0' && *temp <= '9'){
+				value = value*10 + (*temp-'0');
+				fprintf(stderr, "in mpd.c line 2773, in gf_mpd_resolve_url(), value is %d \n\n", value);
+				temp ++;
+			}
+		}
+		value = (value + (init_number-2)/2)%init_number;
+		if(value == 0) value = 10;
+		fprintf(stderr, "in mpd.c line 2780, in gf_mpd_resolve_url(), value is %d \n\n", value);
+		sprintf(int_to_string, "%d", value);
+		fprintf(stderr, "in mpd.c line 2784, in gf_mpd_resolve_url(), int_to_string is %s \n\n", int_to_string);
+		strcat(int_to_string, temp);
+		fprintf(stderr, "in mpd.c line 2787, in gf_mpd_resolve_url(), int_to_string is %s \n\n", int_to_string);
+		if(value == 10){
+			strncpy(dest, media_url, strlen(media_url)-(strlen(int_to_string)-1));
+		}else if (value == 4)
+		{
+			strncpy(dest, media_url, strlen(media_url)-strlen(int_to_string)-1);
+		}else{
+			strncpy(dest, media_url, strlen(media_url)-strlen(int_to_string));
+		}
+		fprintf(stderr, "in mpd.c line 2790, in gf_mpd_resolve_url(), dest is %s \n\n", dest);
+		strcat(dest, int_to_string);
+		media_url = dest;
 		url_to_solve = media_url;
+		fprintf(stderr, "in mpd.c line 2770, in gf_mpd_resolve_url(), media_url is %s \n\n", media_url);
 		break;
 	case GF_MPD_RESOLVE_URL_INDEX:
 		url_to_solve = index_template;
@@ -2769,20 +2812,27 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 		return GF_OK;
 	}
 	/*let's solve the template*/
+	fprintf(stderr, "in mpd.c line 2774, in gf_mpd_resolve_url(), url_to_sovle is %s \n\n", url_to_solve);
 	solved_template = gf_malloc(sizeof(char)*(strlen(url_to_solve) + (rep->id ? strlen(rep->id) : 0)) * 2);
 	if (!solved_template) return GF_OUT_OF_MEM;
 
 	solved_template[0] = 0;
+	fprintf(stderr, "in mpd.c line 2779, in gf_mpd_resolve_url(), solved_template is %c \n\n", solved_template[0]);
 	strcpy(solved_template, url_to_solve);
+	fprintf(stderr, "in mpd.c line 2781, in gf_mpd_resolve_url(), solved_template is %s \n\n", solved_template);
 	first_sep = strchr(solved_template, '$');
+	fprintf(stderr, "in mpd.c line 2783, in gf_mpd_resolve_url(), first_sep is %s \n\n", first_sep);
 	if (first_sep) first_sep[0] = 0;
+	fprintf(stderr, "in mpd.c line 2785, in gf_mpd_resolve_url(), first_sep is %s \n\n", first_sep);
 
 	first_sep = strchr(url_to_solve, '$');
+	fprintf(stderr, "in mpd.c line 2788, in gf_mpd_resolve_url(), first_sep is %s \n\n", first_sep);
 	while (first_sep) {
 		char szPrintFormat[50];
 		char szFormat[100];
 		char *format_tag;
 		char *second_sep = strchr(first_sep+1, '$');
+		fprintf(stderr, "in mpd.c line 2794, in gf_mpd_resolve_url(), second_sep is %s \n\n", second_sep);
 		if (!second_sep) {
 			gf_free(url);
 			gf_free(solved_template);
@@ -2790,6 +2840,7 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 		}
 		second_sep[0] = 0;
 		format_tag = strchr(first_sep+1, '%');
+		fprintf(stderr, "in mpd.c line 2802, in gf_mpd_resolve_url(), format_tag is %s \n\n", format_tag);
 
 		if (format_tag) {
 			strcpy(szPrintFormat, format_tag);
@@ -2798,6 +2849,7 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 				strcat(szPrintFormat, "d");
 		} else {
 			strcpy(szPrintFormat, "%d");
+			fprintf(stderr, "in mpd.c line 2811, in gf_mpd_resolve_url(), szPrintformat %s \n\n", szPrintFormat);
 		}
 		/* identifier is $$ -> replace by $*/
 		if (!strlen(first_sep+1)) {
@@ -2823,6 +2875,7 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 			} else {
 				sprintf(szFormat, szPrintFormat, start_number + item_index);
 				strcat(solved_template, szFormat);
+				fprintf(stderr, "in mpd.c line 2837, in gf_mpd_resolve_url(), solved_template is %s \n\n", solved_template);
 			}
 
 			/*check start time is in period (start time is ~seg_duration * item_index, since startNumber seg has start time = 0 in the period*/
@@ -2907,6 +2960,7 @@ GF_Err gf_mpd_resolve_url(GF_MPD *mpd, GF_MPD_Representation *rep, GF_MPD_Adapta
 		if (first_sep) first_sep[0] = '$';
 	}
 	*out_url = gf_url_concatenate(url, solved_template);
+	fprintf(stderr, "in mpd.c line 2912, the url is %s \nthe solved_template is %s\nout_url is %s \n\n", url, solved_template, *out_url);
 	gf_free(url);
 	gf_free(solved_template);
 	return GF_OK;
